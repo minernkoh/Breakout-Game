@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BREAKOUT</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="game-wrapper">
+      <h1>BREAKOUT</h1>
+      <p class="subtitle">Use ⬅️ ➡️ or A / D to move the paddle</p>
+
+      <div id="game">
+        <div class="hud">
+          <div class="high-score-container">
+            <span class="label">Highscore</span>
+            <span id="highScore">0</span>
+          </div>
+          <span id="score">0</span>
+          <span id="lives">❤️❤️❤️</span>
+        </div>
+        <div id="bricks"></div>
+        <div id="paddle"></div>
+        <div id="ball"></div>
+
+        <div id="message" class="message">
+          <div class="message-content">
+            <h2></h2>
+            <p>
+              Press <strong>Space</strong> or click <strong>Start</strong> to
+              launch the ball.
+            </p>
+            <button id="startButton" class="btn">Start</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="restart" class="btn">Restart Game</button>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
