@@ -29,6 +29,16 @@ const messageOverlay = document.getElementById("message");
 const startButton = document.getElementById("startButton");
 const restartButton = document.getElementById("restart");
 
+// Audio elements
+const BGM = document.getElementById("bgm");
+const SFX_brickHit = document.getElementById("brickHit");
+const SFX_hit = document.getElementById("hit");
+const SFX_lifeLost = document.getElementById("lifeLost");
+const SFX_gameOver = document.getElementById("gameOver");
+const SFX_gameWin = document.getElementById("gameWin");
+const SFX_buttonHover = document.getElementById("buttonHover");
+const SFX_buttonClick = document.getElementById("buttonClick");
+
 /*-------------------------------- Variables --------------------------------*/
 let gameState = GAME_STATES.START;
 
@@ -45,6 +55,7 @@ let ballWidth, ballHeight; // cached ball size
 let paddleX; // paddle position
 
 let animationId = null; // requestAnimationFrame id
+let lastTrailTime = 0; // for throttling ball trail
 
 // keyboard input tracking
 let keys = {
@@ -72,7 +83,6 @@ function createBricks() {
       brick.classList.add("brick", `row-${row}`);
       brick.dataset.row = row;
       brick.dataset.col = col;
-      brick.style.backgroundColor = getBrickColor(row);
 
       bricksContainer.appendChild(brick);
       bricks.push(brick);
@@ -162,6 +172,13 @@ function updateHighScore() {
   }
 }
 
+function playSound(audio, volume = 1) {
+  if (!audio) return;
+  audio.currentTime = 0;
+  audio.volume = volume;
+  audio.play().catch(() => {});
+}
+
 /*-------------------------------- State Transition --------------------------------*/
 function resetGame() {
   console.log("resetGame()");
@@ -192,6 +209,12 @@ function resetGame() {
 function startPlaying() {
   hideMessage();
   gameState = GAME_STATES.PLAYING;
+
+  if (BGM && BGM.paused) {
+    BGM.volume = 0.2;
+    BGM.play().catch(() => {});
+  }
+
   animationId = requestAnimationFrame(update);
 }
 
@@ -199,6 +222,12 @@ function pauseGame() {
   if (gameState !== GAME_STATES.PLAYING) return;
   console.log("pauseGame()");
   gameState = GAME_STATES.PAUSED;
+
+  // pause music
+  if (BGM && !BGM.paused) {
+    BGM.pause();
+  }
+
   showMessage("Paused", "Press <strong>Space</strong> to resume.", false);
 }
 
@@ -207,6 +236,12 @@ function resumeGame() {
   console.log("resumeGame()");
   hideMessage();
   gameState = GAME_STATES.PLAYING;
+
+  // resume music
+  if (BGM && BGM.paused) {
+    BGM.play().catch(() => {});
+  }
+
   animationId = requestAnimationFrame(update);
 }
 
@@ -222,6 +257,13 @@ function handleLifeLost() {
 
 function handleGameOver(finalScore) {
   console.log("handleGameOver()");
+
+  if (BGM) {
+    BGM.pause();
+    BGM.currentTime = 0;
+  }
+  playSound(SFX_gameOver, 0.9);
+
   gameState = GAME_STATES.GAME_OVER;
   showMessage(
     "Game Over 💥",
@@ -232,6 +274,13 @@ function handleGameOver(finalScore) {
 
 function handleWin(finalScore) {
   console.log("handleWin()");
+
+  if (BGM) {
+    BGM.pause();
+    BGM.currentTime = 0;
+  }
+  playSound(SFX_gameWin, 0.9);
+
   gameState = GAME_STATES.WIN;
   showMessage(
     "You Win! 🎉",
@@ -321,22 +370,32 @@ document.addEventListener("mousemove", (e) => {
   paddle.style.left = `${paddleX}px`;
 });
 
-// Start button does same as Space
+// start button does same as Space
 startButton.addEventListener("click", () => {
   console.log("start button clicked");
+  playSound(SFX_buttonClick, 0.9);
   handlePrimaryAction();
 });
 
-// Restart button always full reset
+// restart button always full reset
 restartButton.addEventListener("click", () => {
   console.log("restart button clicked");
+  playSound(SFX_buttonClick, 0.9);
   resetGame();
+});
+
+// button hover
+[startButton, restartButton].forEach((btn) => {
+  btn.addEventListener("mouseenter", () => {
+    playSound(SFX_buttonHover, 0.6);
+  });
 });
 
 // allow click on overlay to resume when paused
 messageOverlay.addEventListener("click", () => {
   if (gameState === GAME_STATES.PAUSED) {
     console.log("resume via overlay click");
+    playSound(SFX_buttonClick, 0.8);
     resumeGame();
   }
 });
@@ -370,11 +429,13 @@ function checkWallCollisions(gameRect) {
   if (ballX <= 0) {
     ballX = 0;
     ballVX *= -1;
+    playSound(SFX_hit, 0.9);
   }
   // right wall
   else if (ballX + ballWidth >= gameRect.width) {
     ballX = gameRect.width - ballWidth;
     ballVX *= -1;
+    playSound(SFX_hit, 0.9);
   }
 
   const hudHeight = 48; // prevents hitting HUD area at the top
@@ -389,6 +450,8 @@ function checkWallCollisions(gameRect) {
     lives -= 1;
     livesEl.textContent = "❤️".repeat(lives);
     playEffects(["shake-hard", "glow-red"], 600);
+
+    playSound(SFX_lifeLost, 0.9);
 
     if (lives <= 0) {
       console.log("game over");
@@ -416,6 +479,9 @@ function checkPaddleCollision(paddleRect, ballRect) {
     ballVY > 0
   ) {
     console.log("paddle hit");
+
+    playSound(SFX_hit, 0.9);
+
     // bounce upward
     ballVY = -Math.abs(ballVY);
 
@@ -448,6 +514,8 @@ function checkBrickCollisions(ballRect, gameRect) {
 
   if (hitBrick) {
     const { brick, index, brickRect } = hitBrick;
+
+    playSound(SFX_brickHit, 0.9);
 
     const overlapLeft = ballRect.right - brickRect.left;
     const overlapRight = brickRect.right - ballRect.left;
