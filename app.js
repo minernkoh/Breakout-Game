@@ -130,10 +130,10 @@ function resetBall() {
 
 function showMessage(title, text, showStartBtn = true) {
   const h2 = messageOverlay.querySelector("h2");
-  const p = messageOverlay.querySelector("p");
+  const body = messageOverlay.querySelector(".message-body");
 
   h2.textContent = title;
-  p.innerHTML = text;
+  body.innerHTML = text;
 
   startButton.classList.toggle("hidden", !showStartBtn);
   messageOverlay.classList.toggle("no-button", !showStartBtn);
@@ -198,8 +198,10 @@ function resetGame() {
     animationId = null;
   }
 
+  startButton.textContent = "Start";
+
   showMessage(
-    "Breakout",
+    "",
     "Press <strong>Space</strong> or click <strong>Start</strong> to begin.",
     true
   );
@@ -223,12 +225,17 @@ function pauseGame() {
   console.log("pauseGame()");
   gameState = GAME_STATES.PAUSED;
 
-  // pause music
   if (BGM && !BGM.paused) {
     BGM.pause();
   }
 
-  showMessage("Paused", "Press <strong>Space</strong> to resume.", false);
+  startButton.textContent = "Resume";
+
+  showMessage(
+    "Game Paused",
+    "Press <strong>Space</strong> or <strong>Click</strong> to resume.",
+    false
+  );
 }
 
 function resumeGame() {
@@ -237,7 +244,6 @@ function resumeGame() {
   hideMessage();
   gameState = GAME_STATES.PLAYING;
 
-  // resume music
   if (BGM && BGM.paused) {
     BGM.play().catch(() => {});
   }
@@ -248,10 +254,13 @@ function resumeGame() {
 function handleLifeLost() {
   console.log("handleLifeLost()");
   gameState = GAME_STATES.LIFE_LOST;
+
+  startButton.textContent = "Start";
+
   showMessage(
-    "Life Lost",
-    "Press <strong>Space</strong> or <strong>Start</strong> to continue.",
-    true
+    "You lost a life!",
+    "Press <strong>Space</strong> or <strong>Click</strong> to resume.",
+    false
   );
 }
 
@@ -265,6 +274,9 @@ function handleGameOver(finalScore) {
   playSound(SFX_gameOver, 0.9);
 
   gameState = GAME_STATES.GAME_OVER;
+
+  startButton.textContent = "Play Again";
+
   showMessage(
     "Game Over 💥",
     `Final Score: <strong>${finalScore}</strong><br/>Press <strong>Space</strong> or click <strong>Start</strong> to play again.`,
@@ -281,12 +293,39 @@ function handleWin(finalScore) {
   }
   playSound(SFX_gameWin, 0.9);
 
+  const baseScore = finalScore ?? score;
+
+  const bonus = lives * 50;
+  const totalScore = baseScore + bonus;
+
+  score = totalScore;
+  scoreEl.textContent = totalScore;
+
+  updateHighScore();
+
   gameState = GAME_STATES.WIN;
-  showMessage(
-    "You Win! 🎉",
-    `Score: <strong>${finalScore}</strong><br/>Press <strong>Space</strong> or click <strong>Start</strong> to play again.`,
-    true
-  );
+
+  startButton.textContent = "Play Again";
+
+  const messageHtml = `
+  <div class="score-table">
+    <div class="row">
+      <span class="label">Bricks Score</span>
+      <span class="value">${baseScore}</span>
+    </div>
+    <div class="row">
+      <span class="label">Lives Bonus</span>
+      <span class="value">+${bonus}</span>
+    </div>
+    <div class="row total">
+      <span class="label">Total</span>
+      <span class="value">${totalScore}</span>
+    </div>
+  </div>
+`;
+
+  startButton.textContent = "Play Again";
+  showMessage("You Win! 🎉", messageHtml, true);
 }
 
 function handlePrimaryAction() {
@@ -319,6 +358,7 @@ document.addEventListener("keydown", (e) => {
   if (e.code === "Space") {
     console.log("space button pressed");
     e.preventDefault();
+    playSound(SFX_buttonClick, 0.9);
     handlePrimaryAction();
   }
 
@@ -391,12 +431,15 @@ restartButton.addEventListener("click", () => {
   });
 });
 
-// allow click on overlay to resume when paused
 messageOverlay.addEventListener("click", () => {
   if (gameState === GAME_STATES.PAUSED) {
-    console.log("resume via overlay click");
+    console.log("resume via overlay click (paused)");
     playSound(SFX_buttonClick, 0.8);
     resumeGame();
+  } else if (gameState === GAME_STATES.LIFE_LOST) {
+    console.log("resume via overlay click (life lost)");
+    playSound(SFX_buttonClick, 0.8);
+    startPlaying();
   }
 });
 
@@ -481,6 +524,10 @@ function checkPaddleCollision(paddleRect, ballRect) {
     console.log("paddle hit");
 
     playSound(SFX_hit, 0.9);
+    paddle.classList.add("paddle-hit");
+    setTimeout(() => {
+      paddle.classList.remove("paddle-hit");
+    }, 150);
 
     // bounce upward
     ballVY = -Math.abs(ballVY);
