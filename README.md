@@ -10,7 +10,7 @@ The challenge was to recreate the classic Breakout arcade experience with clean 
 - HTML
 - CSS
 
-## ✨ Features
+## ⚡️ Features
 
 - Responsive paddle control (keyboard + mouse)
 - Realistic ball physics with angled paddle bounces
@@ -20,7 +20,7 @@ The challenge was to recreate the classic Breakout arcade experience with clean 
 - Background music, sound effects
 - Fully DOM-rendered (no Canvas)
 
-## ⚡️ Power-Ups
+### Power-Ups
 
 - **Big Paddle**: Temporarily increases paddle size
 - **Multi-Ball**: Splits into 3 balls
