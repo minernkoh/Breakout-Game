@@ -20,7 +20,7 @@ The challenge was to recreate the classic Breakout arcade experience with clean 
 - Background music, sound effects
 - Fully DOM-rendered (no Canvas)
 
-### Power-Ups
+#### Power-Ups
 
 - **Big Paddle**: Temporarily increases paddle size
 - **Multi-Ball**: Splits into 3 balls
@@ -45,7 +45,7 @@ Spacebar and Start clicks behaved inconsistently until I centralized everything 
 - Implementing collision detection and bounce physics
 - Managing full game flow with a simple state machine
 
-## 🚀 Future Improvements
+## 🚀 Future Enhancements
 
 - Additional Levels
 - Endless Mode

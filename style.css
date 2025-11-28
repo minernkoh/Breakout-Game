@@ -213,7 +213,6 @@ h1 {
   animation: paddle-bounce 0.15s ease-out;
 }
 
-#ball,
 .ball {
   background: radial-gradient(circle at 30% 30%, #f9fafb, #e11d48);
   border-radius: 50%;

@@ -10,7 +10,6 @@ const GAME_STATES = {
 
 const rows = 4; // brick rows
 const cols = 8; // brick columns
-const brickHeight = 20;
 const ballSpeed = 4.5;
 const paddleSpeed = 6;
 const maxLives = 3;
@@ -713,6 +712,7 @@ function checkWallCollisions(gameRect) {
     if (ball.y <= hudHeight) {
       ball.y = hudHeight;
       ball.vy *= -1;
+      playSound(SFX_hit, 0.9);
       createCollisionEffect(ball.x, hudHeight);
     }
   });
@@ -786,7 +786,7 @@ function checkPaddleCollision(paddleRect) {
   });
 }
 
-function checkBrickCollisions(gameRect) {
+function checkBrickCollisions() {
   let hitOccurred = false;
 
   balls.forEach((ball) => {
@@ -898,7 +898,7 @@ function update() {
   checkPaddleCollision(paddleRect);
 
   // if returns true, return
-  if (checkBrickCollisions(gameRect)) return;
+  if (checkBrickCollisions()) return;
 
   // schedule next frame if still in playing state
   if (gameState === GAME_STATES.PLAYING) {
