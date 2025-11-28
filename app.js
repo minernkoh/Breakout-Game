@@ -78,11 +78,7 @@ let keys = {
 };
 
 /*-------------------------------- Helper Functions --------------------------------*/
-// returns colour for a brick based on row index
-function getBrickColor(row) {
-  const colors = ["#ef4444", "#eab308", "#22c55e", "#22d3ee"];
-  return colors[row % colors.length];
-}
+
 // create all bricks and add to DOM
 function createBricks() {
   // build the brick grid
@@ -268,7 +264,7 @@ function activatePowerUp(type) {
 
   switch (type) {
     case powerUpTypes.bigPaddle:
-      // center the paddle as it grows so it expands both left and right
+      // center the paddle as it grows so it expands left and right
       {
         const gameRect = game.getBoundingClientRect();
         const prevWidth = paddle.offsetWidth; // stores the current paddle width before growing
@@ -286,14 +282,15 @@ function activatePowerUp(type) {
         setTimeout(() => paddle.classList.remove("paddle-hit"), 180);
       }
       setTimeout(() => {
-        const gameRect = game.getBoundingClientRect();
+        const gameRect = game.getBoundingClientRect(); // get game width to keep paddle within board
         const currentWidth = paddle.offsetWidth; // width while big
-        const centerX = paddleX + currentWidth / 2;
-        paddle.classList.remove("paddle-big");
+        const centerX = paddleX + currentWidth / 2; // compute current center
+        paddle.classList.remove("paddle-big"); // remove class
         const newWidth = paddle.getBoundingClientRect().width; // back to normal
         const newLeft = Math.max(
+          // compute new position so that center stays the same
           0,
-          Math.min(gameRect.width - newWidth, centerX - newWidth / 2)
+          Math.min(gameRect.width - newWidth, centerX - newWidth / 2) // clamp inside game box
         );
         paddleX = newLeft;
         paddle.style.left = `${paddleX}px`;
@@ -333,7 +330,7 @@ function updatePowerUps() {
 
   // loop backwards through the powerUps array
   /* why loop backwards? power ups removed in the middle of array causes gaps, causing skipped elements. 
-  looping backwards = safer becauses indexes of unvisited elements dont change */
+  looping backwards = safer because indexes of unvisited elements dont change */
   for (let i = powerUps.length - 1; i >= 0; i--) {
     const p = powerUps[i];
     p.y += powerUpSpeed; // move it down
@@ -687,7 +684,7 @@ function moveBalls(gameRect) {
 function createCollisionEffect(x, y) {
   const effect = document.createElement("div");
   effect.classList.add("collision-effect");
-  effect.style.left = `${x}px`; // positions effect horiontally at collision point
+  effect.style.left = `${x}px`; // positions effect horizontally at collision point
   effect.style.top = `${y}px`; // positions it vertically
   game.appendChild(effect); // adds effect to game board
   setTimeout(() => effect.remove(), 300); // remove after 300ms
@@ -711,6 +708,7 @@ function checkWallCollisions(gameRect) {
       createCollisionEffect(gameRect.width, ball.y);
     }
 
+    // top wall
     const hudHeight = 48; // prevents hitting HUD area at the top
     if (ball.y <= hudHeight) {
       ball.y = hudHeight;
@@ -754,7 +752,7 @@ function checkPaddleCollision(paddleRect) {
       ballRect.bottom >= paddleRect.top && // bottom of ball below top of paddle
       ballRect.top <= paddleRect.bottom && // top of ball above bottom of paddle
       ballRect.right >= paddleRect.left && // ball right side intersecting with paddle's left edge
-      ballRect.left <= paddleRect.right && // ball right side intersecting with paddle's right edge
+      ballRect.left <= paddleRect.right && // ball left side intersecting with paddle's right edge
       ball.vy > 0 // ball moving downwards,
     ) {
       console.log("paddle hit");
@@ -770,7 +768,7 @@ function checkPaddleCollision(paddleRect) {
       // bounce upward, make value negative
       ball.vy = -Math.abs(ball.vy);
 
-      // (center X of ball - how far center is from ledt edge of paddle) / normalize paddle width into value between 0 to 1
+      // (center X of ball - how far center is from left edge of paddle) / normalize paddle width into value between 0 to 1
       // hit position (0 = left, 1 = right)
       const hitPos =
         (ballRect.left + ballRect.width / 2 - paddleRect.left) /
@@ -802,7 +800,7 @@ function checkBrickCollisions(gameRect) {
       const brickRect = brick.getBoundingClientRect();
 
       if (rectsOverlap(ballRect, brickRect)) {
-        hitBrick = { brick, index: i, brickRect }; // store brick, index and rect
+        hitBrick = { brick, index: i, brickRect }; // store brick, index and coordinates
         break;
       }
     }
@@ -859,7 +857,7 @@ function checkBrickCollisions(gameRect) {
       scoreEl.textContent = score;
 
       const gameRect = game.getBoundingClientRect();
-      // compute x and y position relative to game container
+      // compute x and y position relative to game container (converting screen coordinates to local game coordinates)
       const relativeX = brickRect.left - gameRect.left + brickRect.width / 2;
       const relativeY = brickRect.top - gameRect.top;
       // chance to spawn powerup
