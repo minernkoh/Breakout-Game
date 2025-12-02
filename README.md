@@ -54,10 +54,9 @@ Spacebar and Start clicks behaved inconsistently until I centralized everything 
 - Mobile Support
 - Music & SFX Menu toggle
 
-## 🖥️ Run Locally
+## 🖥️ Running the Game
 
-1. Clone or download this repository
-2. Open `index.html` directly in a modern browser
+[Click here](https://minernkoh.github.io/Breakout-Game/) to run the game!
 
 ## 🕹️ How to Play
 
